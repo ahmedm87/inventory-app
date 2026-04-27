@@ -1,0 +1,32 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://inventory:inventory@db:5432/inventory
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory
+      POSTGRES_DB: inventory
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U inventory"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
