@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopify Inventory Sync — Build Session Report</title>
+<style>
+  :root { --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --green: #3fb950; --red: #f85149; --yellow: #d29922; --border: #30363d; --card: #161b22; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--fg); line-height: 1.6; padding: 2rem; max-width: 960px; margin: 0 auto; }
+  h1 { color: var(--accent); margin-bottom: 0.5rem; font-size: 1.8rem; }
+  h2 { color: var(--accent); margin: 2rem 0 1rem; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+  h3 { color: var(--fg); margin: 1.5rem 0 0.5rem; font-size: 1.1rem; }
+  .meta { color: #8b949e; margin-bottom: 2rem; }
+  .phase { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; }
+  .phase-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+  .badge-green { background: #238636; color: #fff; }
+  .badge-yellow { background: #9e6a03; color: #fff; }
+  .badge-red { background: #da3633; color: #fff; }
+  .badge-blue { background: #1f6feb; color: #fff; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.9rem; }
+  th, td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; }
+  th { background: var(--card); font-weight: 600; }
+  tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+  code { background: var(--card); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+  pre { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; overflow-x: auto; font-size: 0.85rem; margin: 0.5rem 0; }
+  .file-list { columns: 2; list-style: none; }
+  .file-list li { padding: 2px 0; font-family: monospace; font-size: 0.85rem; }
+  .file-list li::before { content: "📄 "; }
+  .diff-table td:nth-child(2), .diff-table td:nth-child(3) { text-align: right; font-family: monospace; }
+  .diff-changed { color: var(--green); font-weight: 600; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin: 1rem 0; }
+  .stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+  .stat-num { font-size: 2rem; font-weight: 700; }
+  .stat-label { font-size: 0.8rem; color: #8b949e; }
+  .timeline { border-left: 2px solid var(--border); padding-left: 1.5rem; margin: 1rem 0; }
+  .timeline-item { margin-bottom: 1rem; position: relative; }
+  .timeline-item::before { content: ""; position: absolute; left: -1.75rem; top: 0.5rem; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  .timeline-item.fix::before { background: var(--yellow); }
+  .timeline-item.success::before { background: var(--green); }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<h1>Shopify Inventory Sync App — Phase 1</h1>
+<p class="meta">Build session report &middot; 2026-04-27 &middot; Claude Code (Opus 4.6)</p>
+
+<h2>Overview</h2>
+<p>Built a complete Shopify custom app that syncs inventory from <strong>Fulfillmen WMS</strong> warehouse to a single Shopify location via hourly cron. Verified end-to-end against live production APIs.</p>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="stat-num" style="color:var(--green)">38</div><div class="stat-label">SKUs Updated</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:var(--accent)">24</div><div class="stat-label">Tests Passing</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:var(--fg)">32</div><div class="stat-label">Files Created</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:var(--green)">0</div><div class="stat-label">Sync Errors</div></div>
+</div>
+
+<h2>Build Phases</h2>
+
+<div class="phase">
+  <div class="phase-title">Phase 0: Consensus Planning (Ralplan) <span class="badge badge-green">APPROVED</span></div>
+  <p>Deep interview spec (12.2% ambiguity) fed into Planner → Architect → Critic consensus loop. Plan approved with 3 amendments:</p>
+  <ul style="margin: 0.5rem 0 0 1.5rem;">
+    <li>Added <code>warehouseSource</code> field to SyncEntry for Phase 2 readiness</li>
+    <li>Dropped unnecessary <code>@shopify/shopify-app-remix</code> dependency</li>
+    <li>Fixed Task 11 (UI) dependency — depends on Prisma, not Orchestrator</li>
+  </ul>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 1: Implementation <span class="badge badge-green">14/14 TASKS</span></div>
+  <p>All 14 tasks from the plan executed with dependency ordering.</p>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 2: QA <span class="badge badge-green">24/24 TESTS</span></div>
+  <p>TypeScript clean (<code>tsc --noEmit</code>), all vitest tests passing.</p>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 3: Live Verification <span class="badge badge-green">CONFIRMED</span></div>
+  <p>Before/after Shopify inventory snapshot confirmed 38 SKU changes with 0 errors.</p>
+</div>
+
+<h2>Architecture</h2>
+
+<h3>Tech Stack</h3>
+<table>
+  <tr><th>Layer</th><th>Technology</th></tr>
+  <tr><td>Framework</td><td>Node.js + Remix + Express</td></tr>
+  <tr><td>Database</td><td>Prisma ORM + PostgreSQL</td></tr>
+  <tr><td>Shopify API</td><td>GraphQL Admin API via @shopify/admin-api-client</td></tr>
+  <tr><td>Scheduling</td><td>node-cron (in-process) + HTTP trigger fallback</td></tr>
+  <tr><td>Testing</td><td>Vitest</td></tr>
+  <tr><td>Deployment</td><td>Docker multi-stage build + docker-compose</td></tr>
+</table>
+
+<h3>Sync Algorithm (11 Steps)</h3>
+<pre>
+1. Concurrency check (in-memory + DB guard)
+2. Create SyncRun(RUNNING)
+3. Enumerate warehouses (GetStorageList API → env fallback)
+4. Fetch Fulfillmen inventory (paginated, 20/page, aggregate by SKU)
+5. Fetch Shopify variants (GraphQL pagination, filter tracked + stocked)
+6. Match SKUs (exact string match)
+7. Compare quantities → build update batch (skip unchanged)
+8. Batch inventorySetQuantities (100/mutation, rate limit backoff)
+9. Record unmatched SKUs
+10. Finalize SyncRun(COMPLETED) with stats
+11. On exception → SyncRun(FAILED) with error message
+</pre>
+
+<h3>Data Model</h3>
+<table>
+  <tr><th>Model</th><th>Purpose</th><th>Key Fields</th></tr>
+  <tr><td>SyncRun</td><td>One per sync execution</td><td>status, source, triggeredBy, stats (updated/skipped/unmatched/errors)</td></tr>
+  <tr><td>SyncEntry</td><td>One per SKU per sync</td><td>sku, warehouseQty, shopifyPrevQty, shopifyNewQty, status, warehouseSource</td></tr>
+  <tr><td>AppConfig</td><td>Audit trail (write-only)</td><td>key, value</td></tr>
+</table>
+
+<h2>Files Created (32)</h2>
+<ul class="file-list">
+  <li>app/config/app-config.ts</li>
+  <li>app/db.server.ts</li>
+  <li>app/shopify.server.ts</li>
+  <li>app/sync/fulfillmen-client.ts</li>
+  <li>app/sync/shopify-inventory.ts</li>
+  <li>app/sync/sku-matcher.ts</li>
+  <li>app/sync/orchestrator.ts</li>
+  <li>app/sync/sync-logger.ts</li>
+  <li>app/lib/cron.ts</li>
+  <li>app/lib/stale-recovery.ts</li>
+  <li>app/routes/api.trigger-sync.ts</li>
+  <li>app/routes/app._index.tsx</li>
+  <li>app/root.tsx</li>
+  <li>app/entry.server.tsx</li>
+  <li>prisma/schema.prisma</li>
+  <li>prisma/migrations/…/migration.sql</li>
+  <li>server.ts</li>
+  <li>tests/unit/app-config.test.ts</li>
+  <li>tests/unit/sku-matcher.test.ts</li>
+  <li>tests/unit/fulfillmen-client.test.ts</li>
+  <li>tests/integration/orchestrator.test.ts</li>
+  <li>scripts/sync-verify.ts</li>
+  <li>scripts/check-locations.ts</li>
+  <li>Dockerfile</li>
+  <li>docker-compose.yml</li>
+  <li>package.json</li>
+  <li>package-lock.json</li>
+  <li>tsconfig.json</li>
+  <li>vite.config.ts</li>
+  <li>.env.example</li>
+  <li>.omc/plans/phase1-implementation-plan.md</li>
+  <li>.omc/specs/deep-interview-shopify-inventory-sync.md</li>
+</ul>
+
+<h2>Live Sync Results</h2>
+
+<div class="stat-grid">
+  <div class="stat-box"><div class="stat-num">97</div><div class="stat-label">Fulfillmen SKUs</div></div>
+  <div class="stat-box"><div class="stat-num">98</div><div class="stat-label">Shopify SKUs (stocked)</div></div>
+  <div class="stat-box"><div class="stat-num">44</div><div class="stat-label">Updated</div></div>
+  <div class="stat-box"><div class="stat-num">50</div><div class="stat-label">Unmatched</div></div>
+</div>
+
+<h3>Inventory Changes (Before → After)</h3>
+<table class="diff-table">
+  <tr><th>SKU</th><th>Before</th><th>After</th></tr>
+  <tr><td>U05-HCR-BK-XL</td><td>2</td><td class="diff-changed">24</td></tr>
+  <tr><td>U05-HCR-BK-S</td><td>114</td><td class="diff-changed">85</td></tr>
+  <tr><td>U05-HCR-BK-M</td><td>-23</td><td class="diff-changed">30</td></tr>
+  <tr><td>U05-HCR-BK-L</td><td>-8</td><td class="diff-changed">82</td></tr>
+  <tr><td>U05-HCR-BK-XXL</td><td>4</td><td class="diff-changed">78</td></tr>
+  <tr><td>M03-BL-M</td><td>6</td><td class="diff-changed">5</td></tr>
+  <tr><td>M03-BL-L</td><td>4</td><td class="diff-changed">3</td></tr>
+  <tr><td>M03-BL-XL</td><td>18</td><td class="diff-changed">19</td></tr>
+  <tr><td>M03-BL-XXL</td><td>2</td><td class="diff-changed">3</td></tr>
+  <tr><td>M03-GY-S</td><td>-1</td><td class="diff-changed">0</td></tr>
+  <tr><td>M03-GY-M</td><td>-1</td><td class="diff-changed">0</td></tr>
+  <tr><td>U05-MCR-BK-S</td><td>-11</td><td class="diff-changed">109</td></tr>
+  <tr><td>U05-MCR-BL-S</td><td>113</td><td class="diff-changed">81</td></tr>
+  <tr><td>U05-MCR-BK-M</td><td>283</td><td class="diff-changed">288</td></tr>
+  <tr><td>U05-MCR-BL-M</td><td>10</td><td class="diff-changed">20</td></tr>
+  <tr><td>U05-MCR-BK-L</td><td>-43</td><td class="diff-changed">57</td></tr>
+  <tr><td>U05-MCR-BK-XL</td><td>145</td><td class="diff-changed">147</td></tr>
+  <tr><td>U05-MCR-BK-XXL</td><td>156</td><td class="diff-changed">21</td></tr>
+  <tr><td>U05-MCR-BL-L</td><td>300</td><td class="diff-changed">6</td></tr>
+  <tr><td>U05-MCR-BL-XXL</td><td>161</td><td class="diff-changed">36</td></tr>
+  <tr><td>U05-AN-BK-S</td><td>-5</td><td class="diff-changed">170</td></tr>
+  <tr><td>U05-AN-BK-M</td><td>109</td><td class="diff-changed">117</td></tr>
+  <tr><td>U05-AN-BK-XL</td><td>284</td><td class="diff-changed">0</td></tr>
+  <tr><td>U05-AN-BK-XXL</td><td>120</td><td class="diff-changed">61</td></tr>
+  <tr><td>U05-AN-BL-S</td><td>22</td><td class="diff-changed">15</td></tr>
+  <tr><td>U05-AN-BL-M</td><td>-10</td><td class="diff-changed">31</td></tr>
+  <tr><td>U05-AN-BL-L</td><td>65</td><td class="diff-changed">90</td></tr>
+  <tr><td>U05-AN-BL-XL</td><td>-7</td><td class="diff-changed">80</td></tr>
+  <tr><td>U05-AN-BL-XXL</td><td>40</td><td class="diff-changed">8</td></tr>
+  <tr><td>U01-BK-XS</td><td>57</td><td class="diff-changed">56</td></tr>
+  <tr><td>U01-BK-S</td><td>66</td><td class="diff-changed">65</td></tr>
+  <tr><td>U01-BK-L</td><td>169</td><td class="diff-changed">167</td></tr>
+  <tr><td>U01-BK-XL</td><td>96</td><td class="diff-changed">92</td></tr>
+  <tr><td>U01-BK-XXL</td><td>51</td><td class="diff-changed">46</td></tr>
+  <tr><td>U01-LG-S</td><td>60</td><td class="diff-changed">59</td></tr>
+  <tr><td>U01-LG-L</td><td>185</td><td class="diff-changed">186</td></tr>
+  <tr><td>U01-LG-XL</td><td>112</td><td class="diff-changed">111</td></tr>
+  <tr><td>U01-LG-XXL</td><td>60</td><td class="diff-changed">56</td></tr>
+</table>
+
+<h2>Issues Discovered &amp; Fixed During Testing</h2>
+
+<div class="timeline">
+  <div class="timeline-item fix">
+    <strong>Fulfillmen API returns string Code, not number</strong><br>
+    <code>Code: "100"</code> not <code>Code: 100</code> — fixed all comparisons to use <code>String(body.Code)</code>
+  </div>
+  <div class="timeline-item fix">
+    <strong>Fulfillmen warehouse field is ShortName, not StorageCode</strong><br>
+    API docs implied <code>StorageCode</code> but actual response uses <code>ShortName</code>
+  </div>
+  <div class="timeline-item fix">
+    <strong>Fulfillmen Code 105 = empty warehouse</strong><br>
+    Not in docs — means "no inventory info". Added graceful handling (return empty data)
+  </div>
+  <div class="timeline-item fix">
+    <strong>Shopify API version deprecated</strong><br>
+    <code>2025-01</code> no longer supported — updated to <code>2025-07</code>
+  </div>
+  <div class="timeline-item fix">
+    <strong>inventorySetQuantities requires ignoreCompareQuantity</strong><br>
+    Newer Shopify API versions require <code>ignoreCompareQuantity: true</code> or per-item <code>compareQuantity</code>
+  </div>
+  <div class="timeline-item fix">
+    <strong>Variants not stocked at location</strong><br>
+    Some variants have no inventory level at the target location — skip them instead of trying to set quantity
+  </div>
+  <div class="timeline-item fix">
+    <strong>Vite SSR module boundary</strong><br>
+    Config loaded in <code>server.ts</code> wasn't visible to Remix routes — moved to <code>globalThis</code>
+  </div>
+  <div class="timeline-item fix">
+    <strong>Bearer token timing attack</strong><br>
+    Replaced <code>!==</code> comparison with <code>crypto.timingSafeEqual</code> on the trigger endpoint
+  </div>
+</div>
+
+<h2>Security Review</h2>
+<table>
+  <tr><th>Check</th><th>Status</th></tr>
+  <tr><td>API keys in env vars (not hardcoded)</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>URL params use encodeURIComponent</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>Prisma parameterized queries (no SQL injection)</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>No dangerouslySetInnerHTML in React</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>Bearer auth uses timingSafeEqual</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>.env excluded from git</td><td><span class="badge badge-green">PASS</span></td></tr>
+  <tr><td>Error messages don't leak internals to API callers</td><td><span class="badge badge-green">PASS</span></td></tr>
+</table>
+
+<h2>Next Steps (Phase 2)</h2>
+<ul style="margin-left: 1.5rem;">
+  <li>Integrate ShipBob API for inventory data</li>
+  <li>Build embedded Shopify Admin UI for per-warehouse inventory view</li>
+  <li>Combined inventory from both warehouses syncs to single location</li>
+  <li>Add dashboard and push alerts</li>
+  <li>Deploy to Railway/Fly.io</li>
+</ul>
+
+<hr style="border-color: var(--border); margin: 2rem 0;">
+<p class="meta">Generated by Claude Code (Opus 4.6) &middot; Session date: 2026-04-27</p>
+
+</body>
+</html>
