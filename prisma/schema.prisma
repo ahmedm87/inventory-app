@@ -7,6 +7,8 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// ─── Existing models (unchanged) ───
+
 model AppConfig {
   id        String   @id @default(cuid())
   key       String   @unique
@@ -63,4 +65,140 @@ enum SyncEntryStatus {
   UNMATCHED
   DUPLICATE
   ERROR
+}
+
+// ─── New models for multi-warehouse order management ───
+
+enum WarehouseProvider {
+  FULFILLMEN
+  SHIPBOB
+}
+
+enum WarehouseRegion {
+  US
+  EU
+  AU
+  CN
+}
+
+model Warehouse {
+  id                String            @id @default(cuid())
+  name              String
+  provider          WarehouseProvider
+  region            WarehouseRegion
+  shopifyLocationId String
+  isActive          Boolean           @default(true)
+  isFallback        Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  stockLevels         StockLevel[]
+  orders              Order[]
+  fulfillmentRequests FulfillmentRequest[]
+
+  @@unique([region])
+}
+
+model StockLevel {
+  id           String    @id @default(cuid())
+  warehouseId  String
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id])
+  sku          String
+  quantity     Int       @default(0)
+  lastSyncedAt DateTime  @default(now())
+
+  @@unique([warehouseId, sku])
+  @@index([sku])
+}
+
+enum OrderProcessingStatus {
+  PENDING
+  ASSIGNING
+  ASSIGNED
+  FULFILLMENT_SENT
+  FULFILLED
+  CANCELLED
+  REASSIGNING
+  REASSIGNMENT_FAILED
+}
+
+model Order {
+  id                        String                @id @default(cuid())
+  shopifyOrderId            String
+  shopifyOrderNumber        String?
+  processingStatus          OrderProcessingStatus @default(PENDING)
+  assignedWarehouseId       String?
+  assignedWarehouse         Warehouse?            @relation(fields: [assignedWarehouseId], references: [id])
+  destinationCountryCode    String?
+  customerEmail             String?
+  totalLineItems            Int                   @default(0)
+  assignmentReason          String?
+  assignedAt                DateTime?
+  fulfilledAt               DateTime?
+  requiresManualIntervention Boolean              @default(false)
+  manualInterventionReason  String?
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+
+  lineItems           OrderLineItem[]
+  fulfillmentRequests FulfillmentRequest[]
+
+  @@unique([shopifyOrderId])
+  @@index([processingStatus])
+}
+
+model OrderLineItem {
+  id              String @id @default(cuid())
+  orderId         String
+  order           Order  @relation(fields: [orderId], references: [id])
+  sku             String
+  quantity        Int
+  productTitle    String @default("")
+  shopifyLineItemId String?
+  createdAt       DateTime @default(now())
+
+  @@index([orderId])
+}
+
+enum FulfillmentRequestStatus {
+  PENDING
+  SENT
+  ACKNOWLEDGED
+  SHIPPED
+  CANCELLED
+  FAILED
+}
+
+model FulfillmentRequest {
+  id                String                   @id @default(cuid())
+  orderId           String
+  order             Order                    @relation(fields: [orderId], references: [id])
+  warehouseId       String
+  warehouse         Warehouse                @relation(fields: [warehouseId], references: [id])
+  externalRequestId String?
+  status            FulfillmentRequestStatus @default(PENDING)
+  sentAt            DateTime?
+  cancelledAt       DateTime?
+  errorMessage      String?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+
+  trackingUpdates TrackingUpdate[]
+
+  @@index([orderId])
+  @@index([status])
+}
+
+model TrackingUpdate {
+  id                   String             @id @default(cuid())
+  fulfillmentRequestId String
+  fulfillmentRequest   FulfillmentRequest @relation(fields: [fulfillmentRequestId], references: [id])
+  trackingNumber       String
+  carrier              String
+  trackingUrl          String?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+  createdAt            DateTime           @default(now())
+
+  @@index([fulfillmentRequestId])
 }

@@ -37,6 +37,9 @@
     "vite-tsconfig-paths": "^5.1.0",
     "vitest": "^3.0.0"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "engines": {
     "node": ">=20.0.0"
   }

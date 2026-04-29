@@ -146,9 +146,11 @@ const BACKOFF_BASE_MS = 1000;
 
 export async function batchUpdateInventory(
   updates: InventoryUpdate[],
+  locationId?: string,
 ): Promise<{ succeeded: number; failed: Array<{ inventoryItemId: string; error: string }> }> {
   const client = getShopifyClient();
   const config = getConfig();
+  const targetLocationId = locationId || config.shopifyLocationId;
   let succeeded = 0;
   const failed: Array<{ inventoryItemId: string; error: string }> = [];
 
@@ -156,7 +158,7 @@ export async function batchUpdateInventory(
     const batch = updates.slice(i, i + BATCH_SIZE);
     const quantities = batch.map((u) => ({
       inventoryItemId: u.inventoryItemId,
-      locationId: config.shopifyLocationId,
+      locationId: targetLocationId,
       quantity: u.quantity,
     }));
 
@@ -237,4 +239,60 @@ export async function batchUpdateInventory(
   }
 
   return { succeeded, failed };
+}
+
+// ─── Multi-location push from StockLevel table ───
+
+import { prisma } from "~/db.server.js";
+
+export interface PushResult {
+  totalPushed: number;
+  totalFailed: number;
+}
+
+export async function pushStockLevelsToShopify(): Promise<PushResult> {
+  const warehouses = await prisma.warehouse.findMany({
+    where: { isActive: true },
+    include: {
+      stockLevels: true,
+    },
+  });
+
+  const shopifyVariants = await fetchAllShopifyVariants();
+  let totalPushed = 0;
+  let totalFailed = 0;
+
+  for (const warehouse of warehouses) {
+    const updates: InventoryUpdate[] = [];
+
+    for (const stockLevel of warehouse.stockLevels) {
+      const variants = shopifyVariants.get(stockLevel.sku);
+      if (!variants || variants.length === 0) continue;
+
+      for (const variant of variants) {
+        updates.push({
+          inventoryItemId: variant.inventoryItemId,
+          quantity: stockLevel.quantity,
+        });
+      }
+    }
+
+    if (updates.length === 0) continue;
+
+    const result = await batchUpdateInventory(
+      updates,
+      warehouse.shopifyLocationId,
+    );
+    totalPushed += result.succeeded;
+    totalFailed += result.failed.length;
+
+    log("info", `Pushed inventory to Shopify for ${warehouse.name}`, {
+      warehouseId: warehouse.id,
+      locationId: warehouse.shopifyLocationId,
+      pushed: result.succeeded,
+      failed: result.failed.length,
+    });
+  }
+
+  return { totalPushed, totalFailed };
 }
