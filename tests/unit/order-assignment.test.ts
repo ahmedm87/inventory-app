@@ -54,10 +54,20 @@ describe("order-assignment", () => {
     expect(result.reason).toContain("all items in stock");
   });
 
-  it("falls back to Fulfillmen when item out of stock at mapped warehouse", () => {
+  it("keeps US orders at ShipBob when item is out of stock because US has no backup", () => {
     const result = assignWarehouse(
       { destinationCountryCode: "US", lineItems: [{ sku: "SKU-A", quantity: 10 }] },
       [{ warehouseId: "wh-us", sku: "SKU-A", quantity: 5 }],
+      warehouses,
+    );
+    expect(result.warehouseId).toBe("wh-us");
+    expect(result.reason).toContain("no Fulfillmen backup");
+  });
+
+  it("falls back to Fulfillmen when an EU item is out of stock at mapped warehouse", () => {
+    const result = assignWarehouse(
+      { destinationCountryCode: "DE", lineItems: [{ sku: "SKU-A", quantity: 10 }] },
+      [{ warehouseId: "wh-eu", sku: "SKU-A", quantity: 5 }],
       warehouses,
     );
     expect(result.warehouseId).toBe("wh-cn");
@@ -74,18 +84,18 @@ describe("order-assignment", () => {
     expect(result.reason).toContain("not mapped");
   });
 
-  it("falls back when any item is out of stock (no splitting)", () => {
+  it("falls back when any EU item is out of stock (no splitting)", () => {
     const result = assignWarehouse(
       {
-        destinationCountryCode: "US",
+        destinationCountryCode: "DE",
         lineItems: [
           { sku: "SKU-A", quantity: 1 },
           { sku: "SKU-B", quantity: 1 },
         ],
       },
       [
-        { warehouseId: "wh-us", sku: "SKU-A", quantity: 10 },
-        { warehouseId: "wh-us", sku: "SKU-B", quantity: 0 },
+        { warehouseId: "wh-eu", sku: "SKU-A", quantity: 10 },
+        { warehouseId: "wh-eu", sku: "SKU-B", quantity: 0 },
       ],
       warehouses,
     );
@@ -95,7 +105,7 @@ describe("order-assignment", () => {
 
   it("falls back when SKU not found in stock levels", () => {
     const result = assignWarehouse(
-      { destinationCountryCode: "US", lineItems: [{ sku: "UNKNOWN", quantity: 1 }] },
+      { destinationCountryCode: "DE", lineItems: [{ sku: "UNKNOWN", quantity: 1 }] },
       [],
       warehouses,
     );
@@ -105,8 +115,8 @@ describe("order-assignment", () => {
 
   it("treats zero quantity as out of stock", () => {
     const result = assignWarehouse(
-      { destinationCountryCode: "US", lineItems: [{ sku: "SKU-A", quantity: 1 }] },
-      [{ warehouseId: "wh-us", sku: "SKU-A", quantity: 0 }],
+      { destinationCountryCode: "DE", lineItems: [{ sku: "SKU-A", quantity: 1 }] },
+      [{ warehouseId: "wh-eu", sku: "SKU-A", quantity: 0 }],
       warehouses,
     );
     expect(result.warehouseId).toBe("wh-cn");

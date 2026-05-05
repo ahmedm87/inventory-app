@@ -1,5 +1,6 @@
 import type { Warehouse } from "@prisma/client";
 import { getWarehouseForCountry } from "./country-mapping.js";
+import { hasFulfillmenBackupForCountry } from "./shipping-rules.js";
 
 export interface OrderForAssignment {
   destinationCountryCode: string;
@@ -79,6 +80,13 @@ export function assignWarehouse(
   }
 
   if (outOfStockSkus.length > 0) {
+    if (!hasFulfillmenBackupForCountry(countryCode)) {
+      return {
+        warehouseId: targetWarehouse.id,
+        reason: `Country ${countryCode} mapped to ${targetWarehouse.name} with no Fulfillmen backup; SKU(s) ${outOfStockSkus.join(", ")} out of stock at mapped warehouse`,
+      };
+    }
+
     return {
       warehouseId: fallback.id,
       reason: `Country ${countryCode} mapped to ${targetWarehouse.name} but SKU(s) ${outOfStockSkus.join(", ")} out of stock, falling back to Fulfillmen China`,

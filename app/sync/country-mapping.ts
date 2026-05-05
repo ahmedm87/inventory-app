@@ -1,7 +1,7 @@
 import { getNamespacedConfig } from "~/config/app-config.js";
+import { DEFAULT_COUNTRY_WAREHOUSE_MAPPING } from "./shipping-rules.js";
 
 let cachedMapping: Map<string, string> | null = null;
-
 function log(level: string, message: string, extra?: Record<string, unknown>) {
   console.log(
     JSON.stringify({ level, timestamp: new Date().toISOString(), component: "country-mapping", message, ...extra }),
@@ -39,7 +39,9 @@ export function getWarehouseForCountry(countryCode: string): string | null {
   }
 
   if (!cachedMapping) {
-    cachedMapping = parseCountryMapping(config.order.countryWarehouseMapping);
+    cachedMapping = parseCountryMapping(
+      config.order.countryWarehouseMapping || DEFAULT_COUNTRY_WAREHOUSE_MAPPING,
+    );
   }
 
   return cachedMapping.get(countryCode.toUpperCase()) ?? null;

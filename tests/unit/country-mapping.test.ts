@@ -1,5 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { parseCountryMapping } from "~/sync/country-mapping.js";
+import {
+  DEFAULT_COUNTRY_WAREHOUSE_MAPPING,
+  FULFILLMEN_ONLY_COUNTRIES,
+  hasFulfillmenBackupForCountry,
+} from "~/sync/shipping-rules.js";
 
 describe("country-mapping", () => {
   it("parses valid mapping string", () => {
@@ -38,5 +43,29 @@ describe("country-mapping", () => {
   it("returns null for unmapped country", () => {
     const map = parseCountryMapping("US:US");
     expect(map.get("BR")).toBeUndefined();
+  });
+
+  it("maps documented ShipBob countries by default", () => {
+    const map = parseCountryMapping(DEFAULT_COUNTRY_WAREHOUSE_MAPPING);
+    expect(map.get("US")).toBe("US");
+    expect(map.get("AT")).toBe("EU");
+    expect(map.get("HR")).toBe("EU");
+    expect(map.get("CH")).toBe("EU");
+    expect(map.get("GB")).toBeUndefined();
+    expect(map.get("CA")).toBeUndefined();
+    expect(map.size).toBe(27);
+  });
+
+  it("tracks Fulfillmen-only documented countries separately from ShipBob mapping", () => {
+    expect(FULFILLMEN_ONLY_COUNTRIES).toContain("GB");
+    expect(FULFILLMEN_ONLY_COUNTRIES).toContain("CA");
+    expect(FULFILLMEN_ONLY_COUNTRIES).toContain("XK");
+    expect(FULFILLMEN_ONLY_COUNTRIES).toContain("VA");
+  });
+
+  it("only allows Fulfillmen backup for ShipBob EU countries", () => {
+    expect(hasFulfillmenBackupForCountry("DE")).toBe(true);
+    expect(hasFulfillmenBackupForCountry("US")).toBe(false);
+    expect(hasFulfillmenBackupForCountry("CA")).toBe(false);
   });
 });

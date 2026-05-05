@@ -1,3 +1,5 @@
+import { DEFAULT_COUNTRY_WAREHOUSE_MAPPING } from "~/sync/shipping-rules.js";
+
 // ─── Flat config interface (backwards compatible) ───
 
 export interface AppConfig {
@@ -177,7 +179,9 @@ export async function loadConfig(): Promise<void> {
       trackingSyncSchedule:
         process.env.TRACKING_SYNC_SCHEDULE || "*/30 * * * *",
       trackingSyncEnabled: process.env.TRACKING_SYNC_ENABLED !== "false",
-      countryWarehouseMapping: process.env.COUNTRY_WAREHOUSE_MAPPING,
+      countryWarehouseMapping:
+        process.env.COUNTRY_WAREHOUSE_MAPPING ||
+        DEFAULT_COUNTRY_WAREHOUSE_MAPPING,
     };
   }
 
